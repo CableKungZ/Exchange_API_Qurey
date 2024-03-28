@@ -9,8 +9,8 @@ timestamp = str(response.json())
 
 # ข้อมูลสำหรับการส่งคำขอ POST
 url = 'https://api.bitkub.com/api/v3/market/balances'
-api_key = 'Your Bitkub Api Key *Read'
-api_secret = 'Your Bitkub Secrect API KEY'
+api_key = 'api_key'
+api_secret = 'api_secret'
 
 # สร้างข้อมูลที่จะถูก hash เพื่อสร้าง signature
 message = f'{timestamp}POST/api/v3/market/balances'
@@ -31,6 +31,7 @@ response = requests.post(url, headers=headers)
 if response.status_code == 200:
     balances = response.json()['result']
     total_thb_value = 0  # รวมมูลค่าทั้งหมดใน THB
+    usdt = 0
     for asset, data in balances.items():
         if data['available'] > 0 or data['reserved'] > 0:
             total = data['available'] + data['reserved']
@@ -47,12 +48,14 @@ if response.status_code == 200:
                     if thb_asset in ticker_data:
                         total_value = ticker_data[thb_asset]['last'] * total
                         total_thb_value += total_value
+                        if thb_asset == "THB_USDT":
+                            usdt = ticker_data[thb_asset]['last']
                         print(f"{thb_asset}: Available - {data['available']}, Reserved - {data['reserved']}, Total - {total}, Value - {total_value} THB")
                     else:
                         print(f"No ticker data available for {thb_asset}")
                 else:
                     print("Failed to fetch ticker data.")
     
-    print(f"Total THB value: {total_thb_value} THB")
+    print(f"Total THB value: {total_thb_value:.4f} THB , {total_thb_value/usdt:.4f} USDT")
 else:
     print("Failed to fetch balances.")
